@@ -10,6 +10,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import {useEffect} from 'react';
 import HomeScreen from '../../screens/Home/Home_Old.js';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import HomeIcon from '../../components/HomeIcon.js';
@@ -55,7 +56,7 @@ export default function BottomTabs(props) {
   const {close, startServer, trackM} = useAuth();
   const {close2} = useAuth();
   const navigation = useNavigation();
-  React.useEffect(() => {
+  useEffect(() => {
     if (props.route.params != null && props.route.params != undefined) {
       startServer('maps').then(res => {
         trackM('Shared location');

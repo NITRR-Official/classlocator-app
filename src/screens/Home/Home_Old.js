@@ -12,6 +12,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import React, {useRef} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {GestureHandlerRootView, ScrollView} from 'react-native-gesture-handler';
 import {useAuth} from '../../utils/auth';
@@ -56,17 +57,20 @@ export default function HomeScreen() {
   const navigation = useNavigation();
   const {startServer, closeNow, openLinks, trackM} = useAuth();
   const exitApp = () => {
+    console.log("Exit App");
     BackHandler.exitApp();
     return true;
   };
-
-  let backHandler;
-
+  
+  const backHandler = useRef(BackHandler.addEventListener('hardwareBackPress', exitApp));
+  
   navigation.addListener('focus', () => {
-    backHandler = BackHandler.addEventListener('hardwareBackPress', exitApp);
+    console.log("Focus test");
+    backHandler.current = BackHandler.addEventListener('hardwareBackPress', exitApp);
   });
-
-  navigation.addListener('blur', () => { backHandler.remove(); });
+  
+  navigation.addListener('blur', () => { backHandler.current.remove(); console.log("Blur test") });
+  console.log(backHandler)
 
   const sendEmail = () => {
     const email = 'elexcode404@gmail.com';
@@ -230,6 +234,7 @@ Best regards,
               />
             </View>
           </TouchableOpacity>
+
           <TouchableOpacity
             className="flex-col items-center"
             onPress={() => {

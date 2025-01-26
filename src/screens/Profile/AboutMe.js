@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   Linking,
 } from 'react-native';
-import React, {useState, useEffect} from 'react';
+import React, {useRef} from 'react';
 import {GestureHandlerRootView, ScrollView} from 'react-native-gesture-handler';
 import {
   widthPercentageToDP as wp,
@@ -29,14 +29,14 @@ export default function AboutMe() {
 
   const {openLinks, closeNow2, trackM} = useAuth();
 
-  let backHandler = null;
+  const backHandler = useRef(BackHandler.addEventListener('hardwareBackPress', goBack));
   
   navigation.addListener('focus', () => {
-    backHandler = BackHandler.addEventListener('hardwareBackPress', goBack);
+    backHandler.current = BackHandler.addEventListener('hardwareBackPress', goBack);
   });
 
   navigation.addListener('blur', () => {
-    backHandler.remove();
+    backHandler.current.remove();
   });
 
   return (
