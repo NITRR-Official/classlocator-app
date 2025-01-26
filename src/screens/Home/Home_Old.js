@@ -54,19 +54,19 @@ const ShareMessage = text => {
 
 export default function HomeScreen() {
   const navigation = useNavigation();
-  const {startServer, closeNow, openLinks, trackM, func, name} = useAuth();
-  const backHandler = () => {
+  const {startServer, closeNow, openLinks, trackM} = useAuth();
+  const exitApp = () => {
     BackHandler.exitApp();
     return true;
   };
 
+  let backHandler;
+
   navigation.addListener('focus', () => {
-    BackHandler.addEventListener('hardwareBackPress', backHandler);
+    backHandler = BackHandler.addEventListener('hardwareBackPress', exitApp);
   });
 
-  navigation.addListener('blur', () => {
-    BackHandler.removeEventListener('hardwareBackPress', backHandler);
-  });
+  navigation.addListener('blur', () => { backHandler.remove(); });
 
   const sendEmail = () => {
     const email = 'elexcode404@gmail.com';

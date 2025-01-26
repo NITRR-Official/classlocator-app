@@ -76,8 +76,8 @@ export default function BottomTabs(props) {
       }}>
       {close ? <PingCard /> : <></>}
       {close2 ? <PingCard2 /> : <></>}
+
       <Tab.Navigator
-        initialRouteName="Discover_Tab"
         screenOptions={screenOptions}>
         <Tab.Screen
           name="Home_Tab"
@@ -106,14 +106,6 @@ export default function BottomTabs(props) {
                 //  </TouchableOpacity>
               );
             },
-
-            headerShown: false,
-            presentation: 'modal',
-            animationTypeForReplace: 'push',
-            animation: 'slide_from_right',
-            // animation: 'flip'
-            // animation: 'none'
-            // animation: 'slide_from_right'
           }}
         />
 
@@ -146,6 +138,7 @@ export default function BottomTabs(props) {
             },
           }}
         />
+
       </Tab.Navigator>
     </View>
   );

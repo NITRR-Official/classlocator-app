@@ -14,7 +14,6 @@ import {
 } from 'react-native-responsive-screen';
 import {theme} from '../theme';
 import {useAuth} from '../utils/auth';
-import Clipboard from '@react-native-clipboard/clipboard';
 
 const PingCard2 = () => {
   const {closeNow2, close2, trackM} = useAuth();
@@ -60,7 +59,6 @@ const PingCard2 = () => {
         <TouchableOpacity
           onPress={() => {
             trackM('UPI')
-            Clipboard.setString('anuj.as828@oksbi');
           }}
           style={{display: 'flex', flexDirection: 'row', padding: wp(1)}}>
           <Text style={{fontSize: wp(4), color: 'black'}}>
