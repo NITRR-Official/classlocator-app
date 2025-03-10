@@ -179,8 +179,6 @@ body {
   # Header
   --------------------------------------------------------------*/
   #header {
-    /* height: 100px; */
-    /* padding-top:4rem; */
     transition: all 0.5s;
     z-index: 3;
     background: linear-gradient(45deg, #1de099, #1dc8cd);
@@ -486,17 +484,14 @@ body {
 
 /* Harsh Changes for floors */
 .containerharsh{
-  /* margin-top: 100px; */
   z-index: 2;
 }
 
 .containerharsh .pagination {
 position: relative;
-/* height: 40px; */
 background: #d9d9d9;
 width: 100%;
 box-shadow: 2px 2px 7px 3px rgba(0, 0, 0, 0.3);
-/* box-shadow: 5px 5px 30px rgba(0, 0, 0, 0.959); */
 display: flex;
 align-items: center;
 justify-content: space-around;
@@ -515,8 +510,6 @@ position: relative;
 padding: 5px 25px;
 text-decoration: none;
 width: 100%;
-/* border: 6px solid rgba(64, 54, 54, 0.751); */
-/* height: 35px; */
 color: rgb(0, 0, 0);
 font-weight: 500;
 }
@@ -626,10 +619,18 @@ cursor:default;
   transition: opacity 0.5s ease-in-out;
 }
 
-.w-container{
-  margin-top: 0;
+/* This is configured for backyard map */
+.pathb rect {
+  transform-box:fill-box;
+  transform-origin:center;
+  opacity: 0;
+  background-color: #00A3FF;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.w-container {
+  margin: 0 auto;
   display: flex;
-  margin:auto;
 }
 .green{
   margin-right:auto;
@@ -643,27 +644,19 @@ cursor:default;
   padding: 1.5rem;
 }
 @media(max-width:900px){
-  .w-container{
-    margin-top: 0rem;
-  }
     .svg_map{
         width: 100vw;
         height: 50vh;
         padding: 0 1rem;
-        /* padding: 0.5rem; */
     }
     .w-container{
       flex-direction: column;
+      margin-top: 0rem;
     }
     .green{
-      /* display: flex; */
-      /* flex-direction: column; */
       align-items: center;
       max-width: none;
-
-      /* padding: 0 !important; */
-      margin-top:0;
-      margin:auto;
+      margin: 0 auto;
   }
 }
 
@@ -705,12 +698,12 @@ cursor:default;
   border: 2px solid #1dc8cd;
   padding: 3px 5px;
   border-radius: 10px;
-  /* margin-left: 10rem; */
   margin: 2rem 0.5rem;
 }
 .reset-btn:hover{
   background-color: #1dc8cd;
   color: white;
+  cursor: default;
 }
 @media(max-width:900px){
   .reset-btn{
@@ -760,7 +753,6 @@ cursor:default;
   text-align: center;
   font-size: 17px;
   color: white;
-  /* margin-top: 0.5rem; */
 }
 @media(max-width:750px){
   .column-eg{

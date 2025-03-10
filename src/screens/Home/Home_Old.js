@@ -12,12 +12,14 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import React, {useRef, useEffect, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {GestureHandlerRootView, ScrollView} from 'react-native-gesture-handler';
 import {useAuth} from '../../utils/auth';
 import Share from 'react-native-share';
 import {theme} from '../../theme';
 import HomePageBanner from '../../components/HomePageBanner';
+import axios from 'axios';
 
 const Btn = () => {
   const {startServer} = useAuth();
@@ -54,19 +56,22 @@ const ShareMessage = text => {
 
 export default function HomeScreen() {
   const navigation = useNavigation();
-  const {startServer, closeNow, openLinks, trackM, func, name} = useAuth();
-  const backHandler = () => {
+  const {startServer, closeNow, closeAuthNow, openLinks, trackM} = useAuth();
+  const exitApp = () => {
+    console.log("Exit App");
     BackHandler.exitApp();
     return true;
   };
 
+  const backHandler = useRef(BackHandler.addEventListener('hardwareBackPress', exitApp));
+  
   navigation.addListener('focus', () => {
-    BackHandler.addEventListener('hardwareBackPress', backHandler);
+    console.log("Focus test");
+    backHandler.current = BackHandler.addEventListener('hardwareBackPress', exitApp);
   });
-
-  navigation.addListener('blur', () => {
-    BackHandler.removeEventListener('hardwareBackPress', backHandler);
-  });
+  
+  navigation.addListener('blur', () => { backHandler.current.remove(); console.log("Blur test") });
+  // console.log(backHandler)
 
   const sendEmail = () => {
     const email = 'elexcode404@gmail.com';
@@ -91,6 +96,17 @@ Best regards,
     )}&body=${encodeURIComponent(body)}`;
     openLinks(mailtoURL);
   };
+
+  //Frontend to backend connection test
+
+  //This use effect spinnet is used to initialize the backend server
+  useEffect(() => {
+    axios.get('https://classlocator-latest.onrender.com/check').then(res => { 
+      console.log(res.data);
+    }).catch(err => { console.log(err) });
+  }, [])
+
+
 
   return (
     <GestureHandlerRootView>
@@ -230,6 +246,7 @@ Best regards,
               />
             </View>
           </TouchableOpacity>
+
           <TouchableOpacity
             className="flex-col items-center"
             onPress={() => {
@@ -281,6 +298,37 @@ Best regards,
                   justifyContent: 'space-between',
                 }}>
                 <Text style={styles.cardText}>Contact Us</Text>
+                <View style={styles.Btn}>
+                  <Text style={styles.btnText2}>Reach out here</Text>
+                </View>
+              </View>
+              <Image
+                source={require('../../../assets/images/support.png')}
+                style={{width: wp(18), height: wp(18)}}
+              />
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => {
+              // navigation.navigate("maps", product);
+              trackM('Authentication')
+              closeAuthNow(true);
+            }}
+            className="flex-col items-center"
+            style={[
+              styles.cardContainer,
+              {height: hp(15.8), marginTop: hp(3)},
+            ]}>
+            <View style={[styles.packageCard, {backgroundColor: '#EAF7FC'}]}>
+              <View
+                style={{
+                  height: hp(8),
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                }}>
+                <Text style={styles.cardText}>Authenticate here</Text>
                 <View style={styles.Btn}>
                   <Text style={styles.btnText2}>Reach out here</Text>
                 </View>
