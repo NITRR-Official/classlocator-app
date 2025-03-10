@@ -19,6 +19,7 @@ import AboutMe from '../../screens/Profile/AboutMe.js';
 import PingCard from '../../components/PingCard.js';
 import {useAuth} from '../../utils/auth.js';
 import PingCard2 from '../../components/PingCard2.js';
+import Auth from '../../components/Auth.jsx';
 import {useNavigation} from '@react-navigation/native';
 
 const screenOptions = {
@@ -54,7 +55,7 @@ export default function BottomTabs(props) {
   // console.log(props.route.params);
   const Tab = createBottomTabNavigator();
   const {close, startServer, trackM} = useAuth();
-  const {close2} = useAuth();
+  const {close2, closeAuth} = useAuth();
   const navigation = useNavigation();
   useEffect(() => {
     if (props.route.params != null && props.route.params != undefined) {
@@ -77,6 +78,7 @@ export default function BottomTabs(props) {
       }}>
       {close ? <PingCard /> : <></>}
       {close2 ? <PingCard2 /> : <></>}
+      {closeAuth ? <Auth /> : <></>}
 
       <Tab.Navigator
         screenOptions={screenOptions}>

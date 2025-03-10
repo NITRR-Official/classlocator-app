@@ -36,6 +36,7 @@ export const AuthProvider = ({children}) => {
 
   const [close, setClose] = useState(false);
   const [close2, setClose2] = useState(false);
+  const [closeAuth, setCloseAuth] = useState(false); 
 
   let server = null;
 
@@ -73,6 +74,10 @@ export const AuthProvider = ({children}) => {
     setClose2(value);
   };
 
+  const closeAuthNow = value => { 
+    setCloseAuth(value);
+   };
+
   const openLinks = link => {
     Linking.openURL(link)
       .then(responsive => {
@@ -91,6 +96,8 @@ export const AuthProvider = ({children}) => {
         closeNow,
         close2,
         closeNow2,
+        closeAuth,
+        closeAuthNow,
         trackM,
       }}>
       {children}

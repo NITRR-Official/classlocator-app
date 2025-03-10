@@ -19,7 +19,7 @@ window.addEventListener('load', () => {
 // New Page
 // Hide all elements with class="containerTab", except for the one that matches the clickable grid column
 function openTab() {
-  var i, x;
+  let i, x;
   x = document.getElementsByClassName('containerTab');
   for (i = 0; i < x.length; i++) {
     x[i].style.display = 'none';
@@ -38,6 +38,8 @@ let firstt1 = document.getElementById('firstt1');
 let firstt2 = document.getElementById('firstt2');
 let secondd1 = document.getElementById('secondd1');
 let secondd2 = document.getElementById('secondd2');
+let backyard1 = document.getElementById('backyard1');
+let backyard2 = document.getElementById('backyard2');
 
 const removeSess = () => {
   sessionStorage.removeItem('start');
@@ -59,6 +61,11 @@ secondd1.onclick = () => {
   sessionStorage.setItem('map_no', '2');
   sessionStorage.setItem('serviceUse', 'X');
 };
+backyard1.onclick = () => {
+  removeSess();
+  sessionStorage.setItem('map_no', '3');
+  sessionStorage.setItem('serviceUse', 'X');
+};
 try {
   grounds2.onclick = () => {
     removeSess();
@@ -73,6 +80,11 @@ try {
   secondd2.onclick = () => {
     removeSess();
     sessionStorage.setItem('map_no', '2');
+    sessionStorage.setItem('serviceUse', 'X');
+  };
+  backyard2.onclick = () => {
+    removeSess();
+    sessionStorage.setItem('map_no', '3');
     sessionStorage.setItem('serviceUse', 'X');
   };
 } catch (error) {}

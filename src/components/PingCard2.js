@@ -59,6 +59,7 @@ const PingCard2 = () => {
         <TouchableOpacity
           onPress={() => {
             trackM('UPI')
+            Clipboard.setString('anuj.as828@oksbi');
           }}
           style={{display: 'flex', flexDirection: 'row', padding: wp(1)}}>
           <Text style={{fontSize: wp(4), color: 'black'}}>
