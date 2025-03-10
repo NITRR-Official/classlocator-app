@@ -25,13 +25,13 @@ export default function InitLoaderEffect({route}) {
     return true;
   };
 
-  navigation.addListener('focus', () => {
-    BackHandler.addEventListener('hardwareBackPress', backHandler);
-  });
+  // navigation.addListener('focus', () => {
+  //   BackHandler.addEventListener('hardwareBackPress', backHandler);
+  // });
 
-  navigation.addListener('blur', () => {
-    BackHandler.removeEventListener('hardwareBackPress', backHandler);
-  });
+  // navigation.addListener('blur', () => {
+  //   BackHandler.removeEventListener('hardwareBackPress', backHandler);
+  // });
 
   const initializer = async () => {
     const copyAssetsFolderContents = async (sourcePath, targetPath) => {

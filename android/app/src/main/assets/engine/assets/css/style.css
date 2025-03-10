@@ -483,7 +483,6 @@ h6 {
 #hero {
   width: 100%;
   height: 100vh;
-  /* background: linear-gradient(45deg, rgba(29, 224, 153, 0.8), rgba(29, 200, 205, 0.8)), url("../img/hero-bg.png") center top no-repeat; */
   background: linear-gradient(45deg, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.75)), url("../img/hero-bg.png") center top no-repeat;
   background-size: cover;
   position: relative;
@@ -969,8 +968,8 @@ section {
   font-size: 14px;
 }
 
-#contact .php-email-form input::focus,
-#contact .php-email-form textarea::focus {
+#contact .php-email-form input:focus,
+#contact .php-email-form textarea:focus {
   background-color: #1dc8cd;
 }
 

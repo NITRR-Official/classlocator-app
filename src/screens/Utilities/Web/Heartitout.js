@@ -19,7 +19,6 @@ import {useNavigation} from '@react-navigation/native';
 import {useAuth} from '../../../utils/auth';
 import Back from '../../../components/Back';
 import Share from 'react-native-share';
-// import {Image} from 'react-native-svg';
 
 const showToast = message => {
   ToastAndroid.show(message, ToastAndroid.SHORT);
