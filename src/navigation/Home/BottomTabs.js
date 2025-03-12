@@ -10,6 +10,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import {useEffect} from 'react';
 import HomeScreen from '../../screens/Home/Home_Old.js';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import HomeIcon from '../../components/HomeIcon.js';
@@ -18,6 +19,7 @@ import AboutMe from '../../screens/Profile/AboutMe.js';
 import PingCard from '../../components/PingCard.js';
 import {useAuth} from '../../utils/auth.js';
 import PingCard2 from '../../components/PingCard2.js';
+import Auth from '../../components/Auth.jsx';
 import {useNavigation} from '@react-navigation/native';
 
 const screenOptions = {
@@ -53,9 +55,9 @@ export default function BottomTabs(props) {
   // console.log(props.route.params);
   const Tab = createBottomTabNavigator();
   const {close, startServer, trackM} = useAuth();
-  const {close2} = useAuth();
+  const {close2, closeAuth} = useAuth();
   const navigation = useNavigation();
-  React.useEffect(() => {
+  useEffect(() => {
     if (props.route.params != null && props.route.params != undefined) {
       startServer('maps').then(res => {
         trackM('Shared location');
@@ -76,8 +78,9 @@ export default function BottomTabs(props) {
       }}>
       {close ? <PingCard /> : <></>}
       {close2 ? <PingCard2 /> : <></>}
+      {closeAuth ? <Auth /> : <></>}
+
       <Tab.Navigator
-        initialRouteName="Discover_Tab"
         screenOptions={screenOptions}>
         <Tab.Screen
           name="Home_Tab"
@@ -106,14 +109,6 @@ export default function BottomTabs(props) {
                 //  </TouchableOpacity>
               );
             },
-
-            headerShown: false,
-            presentation: 'modal',
-            animationTypeForReplace: 'push',
-            animation: 'slide_from_right',
-            // animation: 'flip'
-            // animation: 'none'
-            // animation: 'slide_from_right'
           }}
         />
 
@@ -146,6 +141,7 @@ export default function BottomTabs(props) {
             },
           }}
         />
+
       </Tab.Navigator>
     </View>
   );

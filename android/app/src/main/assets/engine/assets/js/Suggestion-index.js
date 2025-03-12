@@ -1,5 +1,4 @@
-const jsonFileURL3 = new URL("./json/searchTool.json", import.meta.url);
-const searching = await fetch(jsonFileURL3).then((r) => r.json());
+import { searchTool } from "./json/searchTool.js";
 import { createPopup } from "./mainDialogBox.js";
 let id = [];
 let name = new Map();
@@ -7,11 +6,11 @@ let start,end;
 let divControl;
 
 //Assigning all the names, details and department information into the array id;
-for (let k in searching) {
-  if(searching[k]["details"] == "")
-    searching[k]["details"] = searching[k]["name"];
-  name.set(searching[k]["name"], k);
-  id.push([searching[k]["name"],searching[k]["details"]]);
+for (let k in searchTool) {
+  if(searchTool[k]["details"] == "")
+    searchTool[k]["details"] = searchTool[k]["name"];
+  name.set(searchTool[k]["name"], k);
+  id.push([searchTool[k]["name"],searchTool[k]["details"]]);
 }
 
 //Getting the element of input current, input final and search box
@@ -37,7 +36,6 @@ const refinedString = (word)=>{
     if((word[i]<'A' || word[i] > 'Z') && (word[i]<'a' || word[i]>'z') && (word[i]<'0' || word[i]>'9'))
       {
         word = word.substring(0,i)+word.substring(i+1);
-        i--;
       }
       newWord = word;
   }
@@ -59,22 +57,22 @@ const pointsSE = (textId) => {
   removal(divControl);
 
   //Searching is done here
-  for (let i = 0; i < id.length; i++) {
-    let fromIdName = id[i][0];
-    let fromIdDetails = id[i][1];
+  for (const element of id) {
+    let fromIdName = element[0];
+    let fromIdDetails = element[1];
     if (fromIdName != undefined && newWord != undefined && fromIdDetails != undefined) {
       let fromIdsNames = refinedString(fromIdName.toUpperCase());
       let fromIdsDetails = refinedString(fromIdDetails.toUpperCase());
       if ((fromIdsNames.indexOf(newWord.toUpperCase()) > -1) || (fromIdsDetails.indexOf(newWord.toUpperCase()) > -1)) {
         //Creating element here para with innerHTML as its array text, adding class of ibutton for css and appending under test div.
         const para = document.createElement("button");
-        para.innerHTML = `${id[i][0]} (${currentText.value})`;
+        para.innerHTML = `${element[0]} (${currentText.value})`;
         para.classList.add("ibutton");
         divControl.appendChild(para);
 
         //Onclick is handled here for each element it found
           para.onclick = () =>{
-            document.getElementById(textId).value = id[i][0];
+            document.getElementById(textId).value = element[0];
             removal(divControl); 
         }
       }
@@ -137,8 +135,7 @@ try {
     search.removeAttribute("href");
   }
   else
-  {
-    if(end == undefined || end == null)
+  if(end == undefined || end == null)
     {
       let popup = createPopup("#popup","Quick actions for you, or click continue anyway to proceed without selecting any destination.",true);
       popup();
@@ -149,7 +146,6 @@ try {
       sessionStorage.setItem('serviceUse','X');
       letsGoo();
     }
-  }
   sessionStorage.setItem('start',start);
   sessionStorage.setItem('end',end);
 }
