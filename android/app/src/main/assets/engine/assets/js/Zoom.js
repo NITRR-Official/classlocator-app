@@ -1,11 +1,12 @@
-import {room_click} from './Engine.js';
-import {map0, map1, map2, map_no} from './Engine.js';
+import {room_click,map0, map1, map2, map3, map_no} from './Engine.js';
+
 let svgMaps = document.querySelectorAll('#removal div svg');
-let mapRotateCache = [0, 0, 0];
+let mapRotateCache = [0, 0, 0,0];
 let mapScaleCache = [
   [0, 0, 1, 0, 0],
   [0, 0, 1, 0, 0],
   [0, 0, 1, 0, 0],
+  [0, 0, 1, 0, 0]
 ];
 let scaless = 1,
   pointXXOld = 0,
@@ -47,23 +48,25 @@ function setTransform(pointX, pointY, scales, svgMap, maps_no) {
 function rotater(svgMap, degree) {
   if (svgMap == 1) map1.style.transform = `rotate(${degree}deg)`;
   else if (svgMap == 2) map2.style.transform = `rotate(${degree}deg)`;
+  else if (svgMap == 3) map3.style.transform = `rotate(${degree}deg)`;
   else map0.style.transform = `rotate(${degree}deg)`;
 }
 
 function switchMapScaleCache(maps_no) {
   scaless = mapScaleCache[maps_no][2];
-  (pointXXOld = mapScaleCache[maps_no][0]),
-    (pointYYOld = mapScaleCache[maps_no][1]),
-    (pointXX = mapScaleCache[maps_no][3]),
-    (pointYY = mapScaleCache[maps_no][4]);
+  pointXXOld = mapScaleCache[maps_no][0];
+  pointYYOld = mapScaleCache[maps_no][1];
+  pointXX = mapScaleCache[maps_no][3];
+  pointYY = mapScaleCache[maps_no][4];
 }
 
 export const resetCache = () => {
-  mapRotateCache = [0, 0, 0];
+  mapRotateCache = [0, 0, 0, 0];
   mapScaleCache = [
     [0, 0, 1, 0, 0],
     [0, 0, 1, 0, 0],
     [0, 0, 1, 0, 0],
+    [0, 0, 1, 0, 0]
   ];
   scaless = 1;
   pointXX = 0;
@@ -204,8 +207,7 @@ const reloades = (svgMap, maps_no) => {
         pointYYOld =
         pointYY =
           e.clientY - ys * scaless;
-    } else {
-      if (scaless == 1) {
+    } else if (scaless == 1) {
         mapScaleCache[maps_no][2] = scaless = 1;
         mapScaleCache[maps_no][3] = pointXXOld = pointXX = 0;
         mapScaleCache[maps_no][4] = pointYYOld = pointYY = 0;
@@ -220,7 +222,6 @@ const reloades = (svgMap, maps_no) => {
           pointYY =
             e.clientY - ys * scaless;
       }
-    }
     setTransform(pointXX, pointYY, scaless, svgMap, maps_no);
   };
 
@@ -241,7 +242,7 @@ const reloades = (svgMap, maps_no) => {
           ),
         );
         if (prevDiff > 0) {
-          var xs = (midPointX - pointXX) / scaless,
+          let xs = (midPointX - pointXX) / scaless,
             ys = (midPointY - pointYY) / scaless;
           if (curDiff > prevDiff) {
             mapScaleCache[maps_no][2] = scaless += 0.05;
@@ -279,6 +280,7 @@ const reloades = (svgMap, maps_no) => {
 export const switching = maps_no => {
   if (maps_no == 1) switchMapScaleCache(1);
   else if (maps_no == 2) switchMapScaleCache(2);
+  else if (maps_no == 3) switchMapScaleCache(3);
   else switchMapScaleCache(0);
 };
 
@@ -286,4 +288,5 @@ export const switchMap = () => {
   reloades(svgMaps[0], 0); //Command for ground floor map is loaded
   reloades(svgMaps[1], 1); //Command for first floor map is loaded
   reloades(svgMaps[2], 2); //Command for second floor map is loaded
+  reloades(svgMaps[3], 3); //Command for second floor map is loaded
 };
