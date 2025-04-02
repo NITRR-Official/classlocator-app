@@ -34,7 +34,7 @@ export default function AboutMe() {
   });
 
   navigation.addListener('blur', () => {
-    BackHandler.removeEventListener('hardwareBackPress', backHandler);
+    // BackHandler.removeEventListener('hardwareBackPress', backHandler);
   });
 
   return (
