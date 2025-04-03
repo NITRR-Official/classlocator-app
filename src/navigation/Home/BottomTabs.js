@@ -2,14 +2,13 @@ import * as React from 'react';
 import {
   View,
   StyleSheet,
-  Text,
-  Dimensions,
-  ImageBackground,
+  Text
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import {useEffect} from 'react';
 import HomeScreen from '../../screens/Home/Home_Old.js';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import HomeIcon from '../../components/HomeIcon.js';
@@ -19,43 +18,16 @@ import PingCard from '../../components/PingCard.js';
 import {useAuth} from '../../utils/auth.js';
 import PingCard2 from '../../components/PingCard2.js';
 import {useNavigation} from '@react-navigation/native';
+import {SafeAreaProvider, useSafeAreaInsets} from 'react-native-safe-area-context';
 
-const screenOptions = {
-  contentStyle: {
-    backgroundColor: 'red',
-    // backgroundColor: "#FF0000",
-  },
-  headerShown: false,
-  tabBarShowLabel: false,
-  tabBarHideOnKeyboard: true,
-  tabBarStyle: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    left: 0,
-    // elevation: 4,
-    height: hp(8),
-    shadowOpacity: 1,
-    shadowRadius: 16.0,
-    elevation: 4,
-    // borderTopLeftRadius: 21,
-    // borderTopRightRadius: 21,
-    shadowColor: '#52006A',
-
-    shadowOffset: {
-      width: 0,
-      height: 0,
-    },
-  },
-};
 
 export default function BottomTabs(props) {
-  // console.log(props.route.params);
   const Tab = createBottomTabNavigator();
+  const insets = useSafeAreaInsets();
   const {close, startServer, trackM} = useAuth();
-  const {close2} = useAuth();
+  const {close2, closeAuth} = useAuth();
   const navigation = useNavigation();
-  React.useEffect(() => {
+  useEffect(() => {
     if (props.route.params != null && props.route.params != undefined) {
       startServer('maps').then(res => {
         trackM('Shared location');
@@ -69,16 +41,43 @@ export default function BottomTabs(props) {
   }, []);
 
   return (
-    <View
+    <SafeAreaProvider
       style={{
         width: wp(100),
         height: hp(104.1),
       }}>
       {close ? <PingCard /> : <></>}
       {close2 ? <PingCard2 /> : <></>}
+      {closeAuth ? <Auth /> : <></>}
+
       <Tab.Navigator
-        initialRouteName="Discover_Tab"
-        screenOptions={screenOptions}>
+        screenOptions={{
+          contentStyle: {
+            backgroundColor: 'red',
+            // backgroundColor: "#FF0000",
+          },
+          headerShown: false,
+          tabBarShowLabel: false,
+          tabBarHideOnKeyboard: true,
+          tabBarStyle: {
+            position: 'absolute',
+            bottom: 0,
+            right: 0,
+            left: 0,
+            height: 65 + insets.bottom, // Adjust for gesture navigation
+            paddingBottom: insets.bottom > 0 ? insets.bottom : 10,
+            shadowOpacity: 1,
+            shadowRadius: 16.0,
+            elevation: 4,
+            
+            shadowColor: '#52006A',
+        
+            shadowOffset: {
+              width: 0,
+              height: 0,
+            },
+          },
+        }}>
         <Tab.Screen
           name="Home_Tab"
           component={HomeScreen}
@@ -88,6 +87,7 @@ export default function BottomTabs(props) {
                 // <TouchableOpacity>
                 <View
                   style={{
+                    top:15,
                     width: wp(16),
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -106,14 +106,6 @@ export default function BottomTabs(props) {
                 //  </TouchableOpacity>
               );
             },
-
-            headerShown: false,
-            presentation: 'modal',
-            animationTypeForReplace: 'push',
-            animation: 'slide_from_right',
-            // animation: 'flip'
-            // animation: 'none'
-            // animation: 'slide_from_right'
           }}
         />
 
@@ -126,6 +118,7 @@ export default function BottomTabs(props) {
                 // <TouchableOpacity>
                 <View
                   style={{
+                    top:15,
                     width: wp(16),
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -146,8 +139,9 @@ export default function BottomTabs(props) {
             },
           }}
         />
+
       </Tab.Navigator>
-    </View>
+    </SafeAreaProvider>
   );
 }
 

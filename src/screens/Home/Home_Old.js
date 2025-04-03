@@ -270,7 +270,7 @@ Best regards,
             className="flex-col items-center"
             style={[
               styles.cardContainer,
-              {height: hp(15.8), marginTop: hp(3)},
+              {height: hp(15.8), marginTop: hp(3), marginBottom: hp(5)},
             ]}>
             <View style={[styles.packageCard, {backgroundColor: '#EAF7FC'}]}>
               <View
