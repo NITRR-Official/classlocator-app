@@ -18,7 +18,10 @@ import {useAuth} from '../../utils/auth';
 import Share from 'react-native-share';
 import {theme} from '../../theme';
 import HomePageBanner from '../../components/HomePageBanner';
-import {SafeAreaProvider, useSafeAreaInsets} from 'react-native-safe-area-context';
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 
 const Btn = () => {
   const {startServer} = useAuth();
@@ -30,7 +33,7 @@ const Btn = () => {
       style={styles.BookBtn}
       onPress={() => {
         startServer('main').then(res => {
-          trackM('Search')
+          trackM('Search');
           navigation.navigate('maps', {link: res, map_no: -1});
         });
       }}>
@@ -110,8 +113,10 @@ Best regards,
         <ScrollView
           scrollEventThrottle={1}
           contentContainerStyle={{flexGrow: 1}}
-          style={{backgroundColor:'red', 
-          height: insets.bottom > 0 ? hp(100) - 2*insets.bottom : hp(100)}}>
+          style={{
+            backgroundColor: '#fff',
+            height: insets.bottom > 0 ? hp(100) - 2 * insets.bottom : hp(100),
+          }}>
           {/* Banner */}
           <View style={{marginTop: hp(0)}}>
             <HomePageBanner />
@@ -161,7 +166,7 @@ Best regards,
             <TouchableOpacity
               onPress={async () => {
                 startServer('maps').then(res => {
-                  trackM('Ground-F')
+                  trackM('Ground-F');
                   navigation.navigate('maps', {link: res, map_no: 0});
                 });
               }}
@@ -176,7 +181,7 @@ Best regards,
             <TouchableOpacity
               onPress={() => {
                 // navigation.navigate("progress", data);
-                trackM('First-F')
+                trackM('First-F');
                 startServer('maps').then(res => {
                   navigation.navigate('maps', {link: res, map_no: 1});
                 });
@@ -192,7 +197,7 @@ Best regards,
             <TouchableOpacity
               style={[styles.card, {backgroundColor: '#EAF7FC'}]}
               onPress={() => {
-                trackM('Second-F')
+                trackM('Second-F');
                 startServer('maps').then(res => {
                   navigation.navigate('maps', {link: res, map_no: 2});
                 });
@@ -207,7 +212,7 @@ Best regards,
 
           <TouchableOpacity
             onPress={() => {
-              trackM('Shared')
+              trackM('Shared');
               ShareMessage(
                 `Hey! 🚀 Check out the new and improved ClassLocator app! Find emergency services instantly, even offline. Download now from the Play Store and share with your friends and family, https://play.google.com/store/apps/details?id=com.classlocator.nitrr`,
               );
@@ -239,7 +244,7 @@ Best regards,
           <TouchableOpacity
             className="flex-col items-center"
             onPress={() => {
-              trackM('Whatsnew')
+              trackM('Whatsnew');
               closeNow(true);
             }}
             style={[
@@ -270,7 +275,7 @@ Best regards,
           <TouchableOpacity
             onPress={() => {
               // navigation.navigate("maps", product);
-              trackM('Contact')
+              trackM('Contact');
               sendEmail();
             }}
             className="flex-col items-center"
