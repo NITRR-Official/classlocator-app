@@ -1,6 +1,6 @@
 import React, {createContext, useContext, useState} from 'react';
 import {ToastAndroid, Linking} from 'react-native';
-import StaticServer from '@dr.pogodin/react-native-static-server';
+// import StaticServer from '@dr.pogodin/react-native-static-server';
 import RNFS from 'react-native-fs';
 import {Mixpanel} from 'mixpanel-react-native';
 
@@ -43,11 +43,11 @@ export const AuthProvider = ({children}) => {
   const startServer = async link => {
     await stopServer()
     const path = `${RNFS.CachesDirectoryPath}/engine`;
-    server = new StaticServer(0, path, {localOnly: true});
+    // server = new StaticServer(0, path, {localOnly: true});
 
     let address = '';
     try {
-      address = await server.start();
+      // address = await server.start();
       console.log(address);
     } catch (error) {
       console.error('Failed to start server:', error);
@@ -57,13 +57,13 @@ export const AuthProvider = ({children}) => {
   };
 
   const stopServer = async () => {
-    let isRun = false;
+    // let isRun = false;
 
-    if (server != null) {
-      isRun = await server.isRunning();
-    } else isRun = false;
+    // if (server != null) {
+    //   isRun = await server.isRunning();
+    // } else isRun = false;
 
-    if (isRun == true) server.stop();
+    // if (isRun == true) server.stop();
   };
 
   const closeNow = value => {
