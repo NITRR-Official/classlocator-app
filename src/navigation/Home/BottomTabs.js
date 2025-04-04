@@ -87,7 +87,7 @@ export default function BottomTabs(props) {
                 // <TouchableOpacity>
                 <View
                   style={{
-                    top:15,
+                    top:5,
                     width: wp(16),
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -118,7 +118,7 @@ export default function BottomTabs(props) {
                 // <TouchableOpacity>
                 <View
                   style={{
-                    top:15,
+                    top:5,
                     width: wp(16),
                     alignItems: 'center',
                     justifyContent: 'center',

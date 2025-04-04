@@ -18,6 +18,7 @@ import {useAuth} from '../../utils/auth';
 import Share from 'react-native-share';
 import {theme} from '../../theme';
 import HomePageBanner from '../../components/HomePageBanner';
+import {SafeAreaProvider, useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const Btn = () => {
   const {startServer} = useAuth();
@@ -92,6 +93,10 @@ Best regards,
     openLinks(mailtoURL);
   };
 
+  const insets = useSafeAreaInsets();
+
+  console.log('insets', insets.bottom);
+
   return (
     <GestureHandlerRootView>
       <SafeAreaView>
@@ -105,7 +110,8 @@ Best regards,
         <ScrollView
           scrollEventThrottle={1}
           contentContainerStyle={{flexGrow: 1}}
-          style={{backgroundColor: '#fff', height: hp(100)}}>
+          style={{backgroundColor:'red', 
+          height: insets.bottom > 0 ? hp(100) - 2*insets.bottom : hp(100)}}>
           {/* Banner */}
           <View style={{marginTop: hp(0)}}>
             <HomePageBanner />
@@ -270,7 +276,7 @@ Best regards,
             className="flex-col items-center"
             style={[
               styles.cardContainer,
-              {height: hp(15.8), marginTop: hp(3), marginBottom: hp(5)},
+              {height: hp(15.8), marginTop: hp(3)},
             ]}>
             <View style={[styles.packageCard, {backgroundColor: '#EAF7FC'}]}>
               <View
