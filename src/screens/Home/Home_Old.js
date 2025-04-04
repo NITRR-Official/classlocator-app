@@ -20,6 +20,10 @@ import Share from 'react-native-share';
 import {theme} from '../../theme';
 import HomePageBanner from '../../components/HomePageBanner';
 import axios from 'axios';
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 
 const Btn = () => {
   const {startServer} = useAuth();
@@ -106,7 +110,7 @@ Best regards,
     }).catch(err => { console.log(err) });
   }, [])
 
-
+  const insets = useSafeAreaInsets();
 
   return (
     <GestureHandlerRootView>
@@ -121,7 +125,10 @@ Best regards,
         <ScrollView
           scrollEventThrottle={1}
           contentContainerStyle={{flexGrow: 1}}
-          style={{backgroundColor: '#fff', height: hp(100)}}>
+          style={{
+            backgroundColor: '#fff',
+            height: insets.bottom > 0 ? hp(100) - 2 * insets.bottom : hp(100),
+          }}>
           {/* Banner */}
           <View style={{marginTop: hp(0)}}>
             <HomePageBanner />

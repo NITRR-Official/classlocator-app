@@ -10,7 +10,6 @@
     "test": "jest"
   },
   "dependencies": {
-    "@dr.pogodin/react-native-static-server": "^0.6.0-alpha.8",
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/native": "^7.0.14",
     "@react-navigation/native-stack": "^7.2.0",
