@@ -52,7 +52,7 @@ export default function AboutMe() {
             alignItems: 'center',
           }}
           keyboardShouldPersistTaps="always"
-          style={{backgroundColor: '#fff', height: insets.bottom > 0 ? hp(92) + insets.bottom: hp(100)}}>
+          style={{backgroundColor: '#fff', height: insets.bottom > 0 ? hp(100) - 2 * insets.bottom : hp(100)}}>
           <View
             style={{
               height: hp(21),
@@ -488,7 +488,7 @@ export default function AboutMe() {
           </TouchableOpacity>
 
           <Text style={{marginTop:hp(2), color:'grey'}} >
-            Ⓒ 2024 ElexCode. All rights reserved.
+            Ⓒ 2025 ElexCode. All rights reserved.
           </Text>
 
           <View style={{height:hp(6)}}>
