@@ -10,7 +10,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "@dr.pogodin/react-native-static-server": "^0.6.0-alpha.8",
+    "local-static-server": "file:./modules/LocalStaticServer",
     "@react-native/metro-config": "0.77.0",
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/native": "^7.0.14",
