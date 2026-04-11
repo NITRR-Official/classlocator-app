@@ -1,0 +1,12 @@
+{
+  "name": "local-static-server",
+  "version": "1.0.0",
+  "description": "In-app loopback static HTTP server for React Native",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "react-native": "index.js",
+  "license": "MIT",
+  "peerDependencies": {
+    "react-native": ">=0.74.0"
+  }
+}

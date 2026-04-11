@@ -2,9 +2,7 @@ import * as React from 'react';
 import {
   View,
   StyleSheet,
-  Text,
-  Dimensions,
-  ImageBackground,
+  Text
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
@@ -21,39 +19,12 @@ import {useAuth} from '../../utils/auth.js';
 import PingCard2 from '../../components/PingCard2.js';
 import Auth from '../../components/Auth.jsx';
 import {useNavigation} from '@react-navigation/native';
+import {SafeAreaProvider, useSafeAreaInsets} from 'react-native-safe-area-context';
 
-const screenOptions = {
-  contentStyle: {
-    backgroundColor: 'red',
-    // backgroundColor: "#FF0000",
-  },
-  headerShown: false,
-  tabBarShowLabel: false,
-  tabBarHideOnKeyboard: true,
-  tabBarStyle: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    left: 0,
-    // elevation: 4,
-    height: hp(8),
-    shadowOpacity: 1,
-    shadowRadius: 16.0,
-    elevation: 4,
-    // borderTopLeftRadius: 21,
-    // borderTopRightRadius: 21,
-    shadowColor: '#52006A',
-
-    shadowOffset: {
-      width: 0,
-      height: 0,
-    },
-  },
-};
 
 export default function BottomTabs(props) {
-  // console.log(props.route.params);
   const Tab = createBottomTabNavigator();
+  const insets = useSafeAreaInsets();
   const {close, startServer, trackM} = useAuth();
   const {close2, closeAuth} = useAuth();
   const navigation = useNavigation();
@@ -71,7 +42,7 @@ export default function BottomTabs(props) {
   }, []);
 
   return (
-    <View
+    <SafeAreaProvider
       style={{
         width: wp(100),
         height: hp(104.1),
@@ -81,7 +52,33 @@ export default function BottomTabs(props) {
       {closeAuth ? <Auth /> : <></>}
 
       <Tab.Navigator
-        screenOptions={screenOptions}>
+        screenOptions={{
+          contentStyle: {
+            backgroundColor: 'red',
+            // backgroundColor: "#FF0000",
+          },
+          headerShown: false,
+          tabBarShowLabel: false,
+          tabBarHideOnKeyboard: true,
+          tabBarStyle: {
+            position: 'absolute',
+            bottom: 0,
+            right: 0,
+            left: 0,
+            height: 65 + insets.bottom, // Adjust for gesture navigation
+            paddingBottom: insets.bottom > 0 ? insets.bottom : 10,
+            shadowOpacity: 1,
+            shadowRadius: 16.0,
+            elevation: 4,
+            
+            shadowColor: '#52006A',
+        
+            shadowOffset: {
+              width: 0,
+              height: 0,
+            },
+          },
+        }}>
         <Tab.Screen
           name="Home_Tab"
           component={HomeScreen}
@@ -91,6 +88,7 @@ export default function BottomTabs(props) {
                 // <TouchableOpacity>
                 <View
                   style={{
+                    top:15,
                     width: wp(16),
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -121,6 +119,7 @@ export default function BottomTabs(props) {
                 // <TouchableOpacity>
                 <View
                   style={{
+                    top:15,
                     width: wp(16),
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -143,7 +142,7 @@ export default function BottomTabs(props) {
         />
 
       </Tab.Navigator>
-    </View>
+    </SafeAreaProvider>
   );
 }
 
