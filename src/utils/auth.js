@@ -1,6 +1,6 @@
 import React, {createContext, useContext, useState} from 'react';
 import {ToastAndroid, Linking} from 'react-native';
-import StaticServer from '@dr.pogodin/react-native-static-server';
+import {start as startLocalServer, stop as stopLocalServer} from 'local-static-server';
 import RNFS from 'react-native-fs';
 import {Mixpanel} from 'mixpanel-react-native';
 
@@ -38,32 +38,30 @@ export const AuthProvider = ({children}) => {
   const [close2, setClose2] = useState(false);
   const [closeAuth, setCloseAuth] = useState(false); 
 
-  let server = null;
-
   const startServer = async link => {
-    await stopServer()
+    await stopServer();
     const path = `${RNFS.CachesDirectoryPath}/engine`;
-    server = new StaticServer(0, path, {localOnly: true});
-
-    let address = '';
     try {
-      address = await server.start();
-      console.log(address);
+      const address = await startLocalServer({
+        rootPath: path,
+        port: 0,
+        localOnly: true,
+      });
+      const base = address.replace(/\/$/, '');
+      console.log(base);
+      return link == 'main' ? `${base}/index.html` : `${base}/maps.html`;
     } catch (error) {
       console.error('Failed to start server:', error);
+      return '';
     }
-
-    return link == 'main' ? `${address}/index.html` : `${address}/maps.html`;
   };
 
   const stopServer = async () => {
-    let isRun = false;
-
-    if (server != null) {
-      isRun = await server.isRunning();
-    } else isRun = false;
-
-    if (isRun == true) server.stop();
+    try {
+      await stopLocalServer();
+    } catch (e) {
+      console.warn('stopServer:', e);
+    }
   };
 
   const closeNow = value => {

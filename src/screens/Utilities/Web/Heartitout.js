@@ -110,9 +110,12 @@ export default function Heartitout(props) {
     return () => backHandler.remove();
   }, [backPressedOnce]);
 
-  navigation.addListener('blur', () => {
-    stopServer();
-  });
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('blur', () => {
+      stopServer();
+    });
+    return unsubscribe;
+  }, [navigation, stopServer]);
 
   useEffect(() => {
     if (props.route.params.link == null || props.route.params.link == undefined)

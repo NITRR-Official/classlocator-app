@@ -1,131 +1,220 @@
-import {room_click,map0, map1, map2, map3, map_no} from './Engine.js';
+import {room_click, map_no} from './Engine.js';
+
+const MIN_SCALE = 1;
+const MAX_SCALE = 4;
+const WHEEL_ZOOM_SENSITIVITY = 0.002;
+const KEYBOARD_ZOOM_STEP = 1.15;
+const LINE_HEIGHT_PX = 20;
 
 let svgMaps = document.querySelectorAll('#removal div svg');
-let mapRotateCache = [0, 0, 0,0];
-let mapScaleCache = [
-  [0, 0, 1, 0, 0],
-  [0, 0, 1, 0, 0],
-  [0, 0, 1, 0, 0],
-  [0, 0, 1, 0, 0]
+
+let mapMatrices = [
+  new DOMMatrix(),
+  new DOMMatrix(),
+  new DOMMatrix(),
+  new DOMMatrix(),
 ];
-let scaless = 1,
-  pointXXOld = 0,
-  pointYYOld = 0,
-  pointXX = 0,
-  pointYY = 0;
 
-function setTransform(pointX, pointY, scales, svgMap, maps_no) {
-  let rotate =
-    mapRotateCache[maps_no] - Math.floor(mapRotateCache[maps_no] / 360) * 360;
-  pointX == 0 && pointY == 0
-    ? (svgMap.style.transition = 'transform 0.5s')
-    : (svgMap.style.transition = '');
-  switch (rotate) {
-    case 90:
-      svgMap.style.transform = `translate(${pointY}px,${-pointX}px) scale(${scales})`;
-      break;
-    case 180:
-      svgMap.style.transform = `translate(${-pointX}px,${-pointY}px) scale(${scales})`;
-      break;
-    case 270:
-      svgMap.style.transform = `translate(${-pointY}px,${pointX}px) scale(${scales})`;
-      break;
-    case -90:
-      svgMap.style.transform = `translate(${-pointY}px,${pointX}px) scale(${scales})`;
-      break;
-    case -180:
-      svgMap.style.transform = `translate(${-pointX}px,${-pointY}px) scale(${scales})`;
-      break;
-    case -270:
-      svgMap.style.transform = `translate(${pointY}px,${-pointX}px) scale(${scales})`;
-      break;
-    default:
-      svgMap.style.transform = `translate(${pointX}px,${pointY}px) scale(${scales})`;
-      break;
+const mapNaturalCenters = [null, null, null, null];
+
+const mapsWithHandlers = new WeakSet();
+let keyboardZoomAttached = false;
+
+function currentScale(M) {
+  return Math.hypot(M.a, M.b);
+}
+
+function applyTouchAction(svgMap, scale) {
+  svgMap.style.touchAction = scale > MIN_SCALE ? 'none' : 'pan-y';
+}
+
+function applyMatrix(svgMap, maps_no, M, animate) {
+  mapMatrices[maps_no] = M;
+  svgMap.style.transition =
+    animate || M.isIdentity ? 'transform 0.5s' : '';
+  svgMap.style.transform = M.toString();
+  applyTouchAction(svgMap, currentScale(M));
+}
+
+function localPoint(svgMap, clientX, clientY) {
+  const r = svgMap.parentElement.getBoundingClientRect();
+  return {x: clientX - r.left, y: clientY - r.top};
+}
+
+function normalizeWheelDeltaYPixels(e) {
+  let dy = e.deltaY;
+  if (e.deltaMode === WheelEvent.DOM_DELTA_LINE) {
+    dy *= LINE_HEIGHT_PX;
+  } else if (e.deltaMode === WheelEvent.DOM_DELTA_PAGE) {
+    dy *= window.innerHeight || 600;
   }
+  return dy;
 }
 
-function rotater(svgMap, degree) {
-  if (svgMap == 1) map1.style.transform = `rotate(${degree}deg)`;
-  else if (svgMap == 2) map2.style.transform = `rotate(${degree}deg)`;
-  else if (svgMap == 3) map3.style.transform = `rotate(${degree}deg)`;
-  else map0.style.transform = `rotate(${degree}deg)`;
+function zoomAround(svgMap, maps_no, clientX, clientY, factor) {
+  if (!Number.isFinite(factor) || factor <= 0) return;
+  const M = mapMatrices[maps_no];
+  const cur = currentScale(M);
+  let next = cur * factor;
+  if (next <= MIN_SCALE) {
+    // Snap back to scale 1 but preserve the current rotation, so the user
+    // doesn't lose the orientation they set with the rotate buttons.
+    const angleDeg = rotationDegrees(M);
+    if (Math.abs(angleDeg) < 0.5) {
+      applyMatrix(svgMap, maps_no, new DOMMatrix());
+    } else {
+      const c = getNaturalCenterLocal(svgMap, maps_no);
+      const Mreset = new DOMMatrix()
+        .translateSelf(c.x, c.y)
+        .rotateSelf(angleDeg)
+        .translateSelf(-c.x, -c.y);
+      applyMatrix(svgMap, maps_no, Mreset, true);
+    }
+    return;
+  }
+  if (next > MAX_SCALE) factor = MAX_SCALE / cur;
+  const p = localPoint(svgMap, clientX, clientY);
+  const Mnew = new DOMMatrix()
+    .translateSelf(p.x, p.y)
+    .scaleSelf(factor)
+    .translateSelf(-p.x, -p.y)
+    .multiplySelf(M);
+  applyMatrix(svgMap, maps_no, Mnew);
 }
 
-function switchMapScaleCache(maps_no) {
-  scaless = mapScaleCache[maps_no][2];
-  pointXXOld = mapScaleCache[maps_no][0];
-  pointYYOld = mapScaleCache[maps_no][1];
-  pointXX = mapScaleCache[maps_no][3];
-  pointYY = mapScaleCache[maps_no][4];
+function panBy(svgMap, maps_no, dx, dy) {
+  if (dx === 0 && dy === 0) return;
+  const Mnew = new DOMMatrix()
+    .translateSelf(dx, dy)
+    .multiplySelf(mapMatrices[maps_no]);
+  applyMatrix(svgMap, maps_no, Mnew);
+}
+
+function rotateAround(svgMap, maps_no, deltaDeg, clientX, clientY, animate) {
+  const p = localPoint(svgMap, clientX, clientY);
+  const Mnew = new DOMMatrix()
+    .translateSelf(p.x, p.y)
+    .rotateSelf(deltaDeg)
+    .translateSelf(-p.x, -p.y)
+    .multiplySelf(mapMatrices[maps_no]);
+  applyMatrix(svgMap, maps_no, Mnew, animate);
+}
+
+function svgCenterClient(svgMap) {
+  const r = svgMap.getBoundingClientRect();
+  return {cx: r.left + r.width / 2, cy: r.top + r.height / 2};
+}
+
+// Returns the SVG's natural (untransformed) center in wrapper-local coords.
+// Cached per-map; the first call temporarily clears the SVG transform to
+// measure, then restores it within the same JS tick to avoid a visible flash.
+function getNaturalCenterLocal(svgMap, maps_no) {
+  if (mapNaturalCenters[maps_no]) return mapNaturalCenters[maps_no];
+  const prevTransform = svgMap.style.transform;
+  const prevTransition = svgMap.style.transition;
+  svgMap.style.transition = 'none';
+  svgMap.style.transform = 'none';
+  const svgRect = svgMap.getBoundingClientRect();
+  const wrapperRect = svgMap.parentElement.getBoundingClientRect();
+  svgMap.style.transform = prevTransform;
+  svgMap.style.transition = prevTransition;
+  const c = {
+    x: svgRect.left + svgRect.width / 2 - wrapperRect.left,
+    y: svgRect.top + svgRect.height / 2 - wrapperRect.top,
+  };
+  mapNaturalCenters[maps_no] = c;
+  return c;
+}
+
+function rotationDegrees(M) {
+  return (Math.atan2(M.b, M.a) * 180) / Math.PI;
 }
 
 export const resetCache = () => {
-  mapRotateCache = [0, 0, 0, 0];
-  mapScaleCache = [
-    [0, 0, 1, 0, 0],
-    [0, 0, 1, 0, 0],
-    [0, 0, 1, 0, 0],
-    [0, 0, 1, 0, 0]
-  ];
-  scaless = 1;
-  pointXX = 0;
-  pointYY = 0;
-  pointXXOld = 0;
-  pointYYOld = 0;
-  setTransform(0, 0, 1, svgMaps[0], 0);
-  setTransform(0, 0, 1, svgMaps[1], 1);
-  setTransform(0, 0, 1, svgMaps[2], 2);
-  rotateDeg(0, true, 0);
-  rotateDeg(0, true, 1);
-  rotateDeg(0, true, 2);
-};
-
-const rotateDeg = (degree, isCounter, map) => {
-  rotater(map, degree);
-  if (isCounter) {
-    mapScaleCache[map][0] = pointXX = -pointYYOld;
-    mapScaleCache[map][1] = pointYY = pointXXOld;
-  } else {
-    mapScaleCache[map][0] = pointXX = pointYYOld;
-    mapScaleCache[map][1] = pointYY = -pointXXOld;
+  for (let i = 0; i < svgMaps.length; i++) {
+    if (svgMaps[i]) {
+      applyMatrix(svgMaps[i], i, new DOMMatrix());
+    } else {
+      mapMatrices[i] = new DOMMatrix();
+    }
   }
-  mapScaleCache[map][3] = pointXXOld = pointXX;
-  mapScaleCache[map][4] = pointYYOld = pointYY;
-  mapRotateCache[map] = degree;
 };
 
 document.getElementById('counterclock').onclick = () => {
-  rotateDeg((mapRotateCache[parseInt(map_no)] -= 90), false, parseInt(map_no));
+  const m = parseInt(map_no);
+  const svgMap = svgMaps[m];
+  if (!svgMap) return;
+  const {cx, cy} = svgCenterClient(svgMap);
+  rotateAround(svgMap, m, -90, cx, cy, true);
 };
 
 document.getElementById('clock').onclick = () => {
-  rotateDeg((mapRotateCache[parseInt(map_no)] += 90), true, parseInt(map_no));
+  const m = parseInt(map_no);
+  const svgMap = svgMaps[m];
+  if (!svgMap) return;
+  const {cx, cy} = svgCenterClient(svgMap);
+  rotateAround(svgMap, m, 90, cx, cy, true);
 };
 
+function isTypingTarget(el) {
+  if (!el || !el.tagName) return false;
+  const t = el.tagName.toLowerCase();
+  return (
+    t === 'input' ||
+    t === 'textarea' ||
+    t === 'select' ||
+    el.isContentEditable
+  );
+}
+
+function attachKeyboardZoomOnce() {
+  if (keyboardZoomAttached) return;
+  keyboardZoomAttached = true;
+  window.addEventListener('keydown', e => {
+    if (isTypingTarget(document.activeElement)) return;
+    const m = parseInt(map_no, 10);
+    if (Number.isNaN(m) || m < 0 || m >= svgMaps.length) return;
+    const svgMap = svgMaps[m];
+    if (!svgMap) return;
+    const {cx, cy} = svgCenterClient(svgMap);
+    if (e.key === '+' || e.key === '=') {
+      e.preventDefault();
+      zoomAround(svgMap, m, cx, cy, KEYBOARD_ZOOM_STEP);
+    } else if (e.key === '-' || e.key === '_') {
+      e.preventDefault();
+      zoomAround(svgMap, m, cx, cy, 1 / KEYBOARD_ZOOM_STEP);
+    } else if (e.key === '0') {
+      e.preventDefault();
+      applyMatrix(svgMap, m, new DOMMatrix());
+    }
+  });
+}
+
 const reloades = (svgMap, maps_no) => {
-  let starts = {x: 0, y: 0};
+  if (mapsWithHandlers.has(svgMap)) return;
+  mapsWithHandlers.add(svgMap);
+
+  if (svgMap.parentElement) {
+    svgMap.parentElement.style.transform = '';
+  }
+  applyMatrix(svgMap, maps_no, mapMatrices[maps_no]);
+
   let pannings = false;
-  setTransform(pointXX, pointYY, scaless, svgMap, maps_no);
+  let lastX = 0;
+  let lastY = 0;
+
   svgMap.onpointercancel = pointerupHandler;
   svgMap.onpointerout = pointerupHandler;
   svgMap.onpointerleave = pointerupHandler;
 
-  //Enabling two finger touch gestures
   let evCache = [];
   let prevDiff = -1;
-  let touchCount, midPointX, midPointY;
 
   function pointerupHandler(ev) {
-    ev.preventDefault();
-    document.getElementsByTagName('html')[0].style.touchAction = 'auto';
-    function removeEvent(ev) {
-      const index = evCache.findIndex(
-        cachedEv => cachedEv.pointerId === ev.pointerId,
-      );
-      evCache.splice(index, 1);
-    }
-    removeEvent(ev);
+    const index = evCache.findIndex(
+      cachedEv => cachedEv.pointerId === ev.pointerId,
+    );
+    if (index >= 0) evCache.splice(index, 1);
     if (evCache.length < 2) {
       prevDiff = -1;
     }
@@ -133,19 +222,22 @@ const reloades = (svgMap, maps_no) => {
   }
 
   const onclicked = e => {
-    //Updated code for Google version 109 and above.
     let gSelector = e.srcElement.parentElement;
     if (gSelector.nodeName == 'text') gSelector = gSelector.parentElement;
 
-    if (gSelector.classList == 'room') room_click(gSelector.id);
+    if (gSelector.classList && gSelector.classList.contains('room')) {
+      room_click(gSelector.id);
+    }
   };
 
   svgMap.onpointerdown = function (e) {
-    e.preventDefault();
-    if (e.pointerType == 'mouse') touchStart(e, 300);
-    document.getElementsByTagName('html')[0].style.touchAction = 'none';
+    if (e.pointerType == 'mouse') {
+      e.preventDefault();
+      touchStart(e, 300);
+    }
     evCache.push(e);
-    starts = {x: e.clientX - pointXX, y: e.clientY - pointYY};
+    lastX = e.clientX;
+    lastY = e.clientY;
     pannings = true;
   };
 
@@ -163,17 +255,6 @@ const reloades = (svgMap, maps_no) => {
     if (timer == null) {
       timer = setTimeout(onlongtouch, tTime);
     }
-    e.preventDefault();
-    try {
-      touchCount = e.touches.length;
-    } catch (error) {
-      touchCount = 1;
-    }
-    if (touchCount == 2) {
-      midPointX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-      midPointY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-    }
-    
   };
 
   const touchEnd = e => {
@@ -193,100 +274,67 @@ const reloades = (svgMap, maps_no) => {
   });
 
   svgMap.onwheel = function (e) {
+    const dy = normalizeWheelDeltaYPixels(e);
+    if (dy === 0) return;
+
+    const cur = currentScale(mapMatrices[maps_no]);
+    if (cur <= MIN_SCALE && !e.ctrlKey && !e.metaKey) {
+      return;
+    }
+
     e.preventDefault();
-    let xs = (e.clientX - pointXX) / scaless,
-      ys = (e.clientY - pointYY) / scaless;
-    let delta = e.deltaY ? -e.deltaY : +e.deltaY;
-    if (delta > 0) {
-      mapScaleCache[maps_no][2] = scaless += 0.05;
-      mapScaleCache[maps_no][3] =
-        pointXXOld =
-        pointXX =
-          e.clientX - xs * scaless;
-      mapScaleCache[maps_no][4] =
-        pointYYOld =
-        pointYY =
-          e.clientY - ys * scaless;
-    } else if (scaless == 1) {
-        mapScaleCache[maps_no][2] = scaless = 1;
-        mapScaleCache[maps_no][3] = pointXXOld = pointXX = 0;
-        mapScaleCache[maps_no][4] = pointYYOld = pointYY = 0;
-      } else {
-        mapScaleCache[maps_no][2] = scaless -= 0.05;
-        mapScaleCache[maps_no][3] =
-          pointXXOld =
-          pointXX =
-            e.clientX - xs * scaless;
-        mapScaleCache[maps_no][4] =
-          pointYYOld =
-          pointYY =
-            e.clientY - ys * scaless;
-      }
-    setTransform(pointXX, pointYY, scaless, svgMap, maps_no);
+    const factor = Math.exp(-dy * WHEEL_ZOOM_SENSITIVITY);
+    zoomAround(svgMap, maps_no, e.clientX, e.clientY, factor);
   };
 
   svgMap.onpointermove = function (ev) {
-    ev.preventDefault();
-    if (touchCount >= 2) {
+    if (evCache.length === 2) {
+      ev.preventDefault();
       const index = evCache.findIndex(
         cachedEv => cachedEv.pointerId === ev.pointerId,
       );
-      evCache[index] = ev;
-      if (evCache.length === 2) {
-        const curDiff = Math.round(
-          Math.sqrt(
-            (evCache[0].clientX - evCache[1].clientX) *
-              (evCache[0].clientX - evCache[1].clientX) +
-              (evCache[0].clientY - evCache[1].clientY) *
-                (evCache[0].clientY - evCache[1].clientY),
-          ),
-        );
-        if (prevDiff > 0) {
-          let xs = (midPointX - pointXX) / scaless,
-            ys = (midPointY - pointYY) / scaless;
-          if (curDiff > prevDiff) {
-            mapScaleCache[maps_no][2] = scaless += 0.05;
-          } else if (curDiff < prevDiff && scaless > 1) {
-            mapScaleCache[maps_no][2] = scaless -= 0.05;
-          }
-          mapScaleCache[maps_no][3] =
-            pointXXOld =
-            pointXX =
-              midPointX - xs * scaless;
-          mapScaleCache[maps_no][4] =
-            pointYYOld =
-            pointYY =
-              midPointY - ys * scaless;
-          if (scaless == 1) {
-            mapScaleCache[maps_no][2] = scaless = 1;
-            mapScaleCache[maps_no][3] = pointXXOld = pointXX = 0;
-            mapScaleCache[maps_no][4] = pointYYOld = pointYY = 0;
-          }
-          setTransform(pointXX, pointYY, scaless, svgMap, maps_no);
+      if (index >= 0) evCache[index] = ev;
+      const p0 = evCache[0];
+      const p1 = evCache[1];
+      const midX = (p0.clientX + p1.clientX) / 2;
+      const midY = (p0.clientY + p1.clientY) / 2;
+      const curDiff = Math.hypot(
+        p0.clientX - p1.clientX,
+        p0.clientY - p1.clientY,
+      );
+      if (prevDiff > 0 && curDiff > 0) {
+        const factor = curDiff / prevDiff;
+        zoomAround(svgMap, maps_no, midX, midY, factor);
+      }
+      prevDiff = curDiff;
+      return;
+    }
+
+    if (evCache.length === 1) {
+      const cur = currentScale(mapMatrices[maps_no]);
+      if (ev.pointerType === 'mouse' || cur > MIN_SCALE) {
+        ev.preventDefault();
+        if (!pannings) {
+          return;
         }
-        prevDiff = curDiff;
+        const dx = ev.clientX - lastX;
+        const dy = ev.clientY - lastY;
+        lastX = ev.clientX;
+        lastY = ev.clientY;
+        panBy(svgMap, maps_no, dx, dy);
       }
-    } else if (touchCount == 1 && scaless != 1) {
-      if (!pannings) {
-        return;
-      }
-      mapScaleCache[maps_no][3] = pointXXOld = pointXX = ev.clientX - starts.x;
-      mapScaleCache[maps_no][4] = pointYYOld = pointYY = ev.clientY - starts.y;
-      setTransform(pointXX, pointYY, scaless, svgMap, maps_no);
     }
   };
 };
 
-export const switching = maps_no => {
-  if (maps_no == 1) switchMapScaleCache(1);
-  else if (maps_no == 2) switchMapScaleCache(2);
-  else if (maps_no == 3) switchMapScaleCache(3);
-  else switchMapScaleCache(0);
+export const switching = _maps_no => {
+  // No-op: each map owns its own DOMMatrix; nothing to swap on floor switch.
 };
 
 export const switchMap = () => {
-  reloades(svgMaps[0], 0); //Command for ground floor map is loaded
-  reloades(svgMaps[1], 1); //Command for first floor map is loaded
-  reloades(svgMaps[2], 2); //Command for second floor map is loaded
-  reloades(svgMaps[3], 3); //Command for second floor map is loaded
+  attachKeyboardZoomOnce();
+  reloades(svgMaps[0], 0);
+  reloades(svgMaps[1], 1);
+  reloades(svgMaps[2], 2);
+  reloades(svgMaps[3], 3);
 };

@@ -19,6 +19,7 @@ import {theme} from '../../theme';
 import Coffee from '../../components/Coffee';
 import {useAuth} from '../../utils/auth';
 import version from '../../utils/version.json'
+import {SafeAreaProvider, useSafeAreaInsets} from 'react-native-safe-area-context';
 
 export default function AboutMe() {
   const navigation = useNavigation();
@@ -34,8 +35,10 @@ export default function AboutMe() {
   });
 
   navigation.addListener('blur', () => {
-    BackHandler.removeEventListener('hardwareBackPress', backHandler);
+    // BackHandler.removeEventListener('hardwareBackPress', backHandler);
   });
+
+  const insets = useSafeAreaInsets();
 
   return (
     <GestureHandlerRootView>
@@ -47,7 +50,7 @@ export default function AboutMe() {
             alignItems: 'center',
           }}
           keyboardShouldPersistTaps="always"
-          style={{backgroundColor: '#fff', height: hp(100)}}>
+          style={{backgroundColor: '#fff', height: insets.bottom > 0 ? hp(92) + insets.bottom: hp(100)}}>
           <View
             style={{
               height: hp(21),
