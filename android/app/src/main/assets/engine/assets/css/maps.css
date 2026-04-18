@@ -1,9 +1,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Varela+Round&display=swap');
+html {
+  overflow-x: hidden;
+  width: 100%;
+  box-sizing: border-box;
+}
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
 body {
     background: #fff;
     color: #666666;
     font-family: "Open Sans", sans-serif;
     overflow-x: hidden;
+    width: 100%;
   }
 
   /* This section is for popup dialog box */
@@ -182,6 +193,20 @@ body {
     transition: all 0.5s;
     z-index: 3;
     background: linear-gradient(45deg, #1de099, #1dc8cd);
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .maps-page-header .maps-header-row {
+    flex-wrap: nowrap;
+  }
+  .maps-page-header .maps-header-logo {
+    flex-shrink: 0;
+  }
+  .maps-page-header .maps-header-search {
+    flex: 1 1 auto;
+    min-width: 0;
   }
   
   #header.header-transparent {
@@ -480,27 +505,42 @@ body {
       padding-top: 50px !important;
     }
   }
+  @media(max-width:749px){
+    #header{
+      padding-top: max(2rem, env(safe-area-inset-top, 2rem)) !important;
+    }
+    #header .maps-header-row{
+      margin-top: 0.5rem !important;
+      margin-bottom: 0.5rem !important;
+    }
+  }
       /* buttons design */
 
 /* Harsh Changes for floors */
 .containerharsh{
   z-index: 2;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .containerharsh .pagination {
 position: relative;
 background: #d9d9d9;
 width: 100%;
+max-width: 100%;
 box-shadow: 2px 2px 7px 3px rgba(0, 0, 0, 0.3);
 display: flex;
 align-items: center;
 justify-content: space-around;
 backdrop-filter: blur(3px);
 border-radius: 2px;
+flex-wrap: nowrap;
 }
 .containerharsh .pagination li {
 list-style-type: none;
-width: 100%;
+flex: 1 1 0;
+min-width: 0;
 display: flex;
 justify-content: center;
 }
@@ -512,6 +552,18 @@ text-decoration: none;
 width: 100%;
 color: rgb(0, 0, 0);
 font-weight: 500;
+}
+@media (max-width: 480px) {
+  .containerharsh .pagination li a {
+    padding: 6px 6px;
+    font-size: 0.8rem;
+  }
+}
+@media (max-width: 360px) {
+  .containerharsh .pagination li a {
+    padding: 6px 4px;
+    font-size: 0.72rem;
+  }
 }
 .containerharsh .pagination li a:hover,
 .active1 {
@@ -565,7 +617,8 @@ cursor:default;
         border: none;
         font-size: 1rem;
         outline: none;
-        width: 268px;
+        width: 100%;
+        max-width: 268px;
       }
       .bigContainer {
         position: relative;
@@ -577,14 +630,25 @@ cursor:default;
         position: relative;
         display: flex;
         justify-content: center;
-        width: 280px;
+        width: 100%;
+        max-width: min(280px, 100%);
         height: 2rem;
         padding: 0.5rem 1rem;
         margin-bottom: 1rem;
       }
+      .maps-page-header .hcontainer {
+        max-width: 100%;
+      }
       @media(max-width:750px){
         .bigContainer{
           flex-direction: column;
+          align-items: stretch;
+        }
+        .maps-page-header #swap {
+          align-self: center;
+        }
+        .maps-page-header .hcontainer {
+          max-width: 100%;
         }
         .iContainer{
           top: 2.7rem;
@@ -593,14 +657,16 @@ cursor:default;
           top: 7rem;
         }
       }
-      input {
-        width: 280px;
+      input[type="text"] {
+        width: 100%;
+        max-width: 100%;
         height: 2rem;
         outline: none;
         border: none;
         border-radius: 1rem;
-        padding: 1.1rem 2rem;
+        padding: 1.1rem 1rem;
         font-size: 1rem;
+        box-sizing: border-box;
       }
 
 
@@ -631,6 +697,24 @@ cursor:default;
 .w-container {
   margin: 0 auto;
   display: flex;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+#removal {
+  align-items: stretch;
+  width: 100%;
+  overflow-x: hidden;
+}
+#removal > .purple {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
 }
 .green{
   margin-right:auto;
@@ -639,24 +723,74 @@ cursor:default;
   margin-top: 6rem;
   position: relative;
   max-width:40vw;
+  min-width: 0;
+  box-sizing: border-box;
 }
 .svg_map{
   padding: 1.5rem;
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+#removal svg.svg_map,
+#removal .purple > svg.svg_map {
+  flex-shrink: 0;
 }
 @media(max-width:900px){
+    /*
+      Do NOT set a fixed .purple height = 100dvh − chrome (e.g. 748−240 ≈ 508px): that forces the
+      SVG to height:100% and leaves empty bands when viewBox is wide (e.g. 1920×1080 + meet).
+      Let the SVG use width:100% + height:auto so its box height follows the scaled drawing;
+      cap scroll with max-height on the wrapper only.
+    */
+    #removal.w-container {
+      display: flex;
+      flex-direction: column;
+    }
+    #removal > .purple {
+      --maps-chrome: 15rem;
+      flex: 1 1 auto;
+      min-height: min(60vh, calc(100dvh - var(--maps-chrome)));
+      max-height: calc(100vh - var(--maps-chrome));
+      max-height: calc(100dvh - var(--maps-chrome));
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
     .svg_map{
-        width: 100vw;
-        height: 50vh;
-        padding: 0 1rem;
+        width: 100% !important;
+        height: auto !important;
+        max-width: 100% !important;
+        max-height: 70vh !important;
+        padding: 0.25rem 0.5rem !important;
+        box-sizing: border-box;
     }
     .w-container{
       flex-direction: column;
-      margin-top: 0rem;
+      margin-top: 0;
+      padding: 0;
+      min-height: calc(100vh - 10rem);
+      min-height: calc(100dvh - 10rem);
+      overflow-x: hidden;
     }
     .green{
+      flex: 0 0 auto;
       align-items: center;
       max-width: none;
-      margin: 0 auto;
+      width: 100%;
+      margin: 0.75rem auto 0;
+  }
+}
+@media (min-width: 901px) {
+  #removal .purple > svg.svg_map,
+  #removal svg.svg_map {
+    width: min(57vw, 100%) !important;
+    height: auto !important;
+    max-height: 90vh;
   }
 }
 
@@ -665,9 +799,14 @@ cursor:default;
     color: white;
     color: #183153;
 }
+@media(max-width:900px){
+  .card{
+    margin: 0.75rem 1.5rem;
+  }
+}
 @media(max-width:600px){
   .card{
-    margin: 1rem 2rem;
+    margin: 0.5rem 1rem;
   }
 }
 
@@ -710,6 +849,27 @@ cursor:default;
     margin-top: 0;
     margin-bottom: 0;
   }
+}
+
+.map-controls{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem 1rem;
+  margin: 0 auto;
+}
+.map-controls .map-control-btn{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  font-size: 18px;
+  margin: 0;
+  min-width: 44px;
+  min-height: 36px;
+  line-height: 1;
+  cursor: pointer;
 }
 
 .cur-btn{
