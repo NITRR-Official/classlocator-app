@@ -199,7 +199,7 @@ function Auth() {
             <TextInput
               value={name}
               onChangeText={setName}
-              placeholder="Your beautiful name"
+              placeholder="Your name"
               placeholderTextColor='gray'
               style={{borderWidth: 1, width: wp(80), height: hp(6)}}
             />
@@ -213,7 +213,7 @@ function Auth() {
             <TextInput
               value={department}
               onChangeText={setDepartment}
-              placeholder="Where are you stucked"
+              placeholder="Where are you stuck"
               placeholderTextColor='gray'
               style={{borderWidth: 1, width: wp(80), height: hp(6)}}
             />

@@ -30,7 +30,7 @@ export default function BottomTabs(props) {
   const navigation = useNavigation();
   useEffect(() => {
     if (props.route.params != null && props.route.params != undefined) {
-      startServer('maps').then(res => {
+      startServer('maps', {map_no: 3, ...props.route.params}).then(res => {
         trackM('Shared location');
         navigation.navigate('maps', {
           link: res,
