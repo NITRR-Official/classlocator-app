@@ -46,25 +46,31 @@ const removeSess = () => {
   sessionStorage.removeItem('end');
   sessionStorage.removeItem('Stair');
 };
-grounds1.onclick = () => {
+
+const goToMap = mapNo => {
   removeSess();
-  sessionStorage.setItem('map_no', '0');
-  sessionStorage.setItem('serviceUse', 'X');
+  const params = new URLSearchParams({
+    map_no: String(mapNo),
+    serviceUse: 'X',
+  });
+  window.location.assign(`./maps.html?${params.toString()}`);
 };
-firstt1.onclick = () => {
-  removeSess();
-  sessionStorage.setItem('map_no', '1');
-  sessionStorage.setItem('serviceUse', 'X');
+
+grounds1.onclick = e => {
+  e.preventDefault();
+  goToMap(0);
 };
-secondd1.onclick = () => {
-  removeSess();
-  sessionStorage.setItem('map_no', '2');
-  sessionStorage.setItem('serviceUse', 'X');
+firstt1.onclick = e => {
+  e.preventDefault();
+  goToMap(1);
 };
-backyard1.onclick = () => {
-  removeSess();
-  sessionStorage.setItem('map_no', '3');
-  sessionStorage.setItem('serviceUse', 'X');
+secondd1.onclick = e => {
+  e.preventDefault();
+  goToMap(2);
+};
+backyard1.onclick = e => {
+  e.preventDefault();
+  goToMap(3);
 };
 try {
   grounds2.onclick = () => {

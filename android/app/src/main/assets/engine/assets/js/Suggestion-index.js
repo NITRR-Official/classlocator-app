@@ -102,16 +102,29 @@ body[0].onclick = ()=>{
   }
 }
 
-//Implementing the onclick for the search button
+//Build the maps.html URL with the current selection encoded as query params.
+//serviceUse is read from sessionStorage so popup service buttons (Stair/Lift/...) propagate.
+//map_no is derived from the start id using the same ranges as Engine.js's detectfinalFloor.
+const floorForRoom = (id) => {
+  const n = Number.parseInt(id);
+  if (n >= 303) return "3";
+  if (n >= 205 && n <= 302) return "1";
+  if (n >= 115 && n <= 204) return "2";
+  return "0";
+};
+
+const buildMapsUrl = (startId, endId) => {
+  const map_no = floorForRoom(startId);
+  const serviceUse = sessionStorage.getItem('serviceUse') || 'X';
+  const params = new URLSearchParams({ map_no, serviceUse });
+  if (startId != null) params.set('start', String(startId));
+  if (endId != null) params.set('end', String(endId));
+  return `./maps.html?${params.toString()}`;
+}
+
+//Kept for backwards compatibility with any other module that imports letsGoo.
 export function letsGoo() {
-  if(Number.parseInt(start) >= 205)
-      sessionStorage.setItem('map_no',"1")
-    else if(Number.parseInt(start) >= 115 && Number.parseInt(start) <= 204)
-      sessionStorage.setItem("map_no","2")
-    else 
-      sessionStorage.setItem("map_no","0")
-    search.setAttribute("href","./maps.html")
-    location.assign('./maps.html')
+  window.location.assign(buildMapsUrl(start, end));
 }
 try {
   swap.addEventListener('click',()=>{
@@ -120,7 +133,7 @@ try {
     current.value = temp;
   })
   
-  search.onclick = ()=>{
+  search.onclick = (e)=>{
   const fetchId = (Id)=>{
     if(name.get(Id.value) != undefined)
       return name.get(Id.value);
@@ -130,24 +143,20 @@ try {
   end = fetchId(final)
   if(start == undefined || start == null)
   {
+    e.preventDefault();
     let popup = createPopup("#popup","Please first select the nearest room.",false);
     popup();
-    search.removeAttribute("href");
+    return;
   }
-  else
   if(end == undefined || end == null)
-    {
-      let popup = createPopup("#popup","Quick actions for you, or click continue anyway to proceed without selecting any destination.",true);
-      popup();
-      search.removeAttribute("href");
-    }
-    else
-    {
-      sessionStorage.setItem('serviceUse','X');
-      letsGoo();
-    }
-  sessionStorage.setItem('start',start);
-  sessionStorage.setItem('end',end);
+  {
+    e.preventDefault();
+    let popup = createPopup("#popup","Quick actions for you, or click continue anyway to proceed without selecting any destination.",true);
+    popup();
+    return;
+  }
+  e.preventDefault();
+  window.location.assign(buildMapsUrl(start, end));
 }
 } catch (error) {
   

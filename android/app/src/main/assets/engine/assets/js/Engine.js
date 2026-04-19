@@ -44,6 +44,26 @@ let serviceUsed = sessionStorage.getItem("serviceUse");
 
 export { map0, map1, map2, map3, map_no };
 
+const hydrateFromUrl = () => {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const allowed = ["map_no", "start", "end", "serviceUse", "mode", "Stair"];
+    for (const key of allowed) {
+      const value = params.get(key);
+      if (
+        value != null &&
+        value !== "" &&
+        value !== "undefined" &&
+        value !== "null"
+      ) {
+        sessionStorage.setItem(key, value);
+      }
+    }
+  } catch (error) {
+    //URL hydration is best-effort; if it fails we fall back to sessionStorage as before.
+  }
+};
+
 const prerequisiteTask = () => {
   if (
     sessionStorage.getItem("mode") == null ||
@@ -170,6 +190,7 @@ function removeUndefinedText() {
 //4th change configured removeMap3 for backyard
 window.addEventListener("load", async () => {
   try {
+    hydrateFromUrl();
     for (let k in searchTool) {
       if (searchTool[k]["details"] == "")
         searchTool[k]["details"] = searchTool[k]["name"];
@@ -182,6 +203,10 @@ window.addEventListener("load", async () => {
     removeMap2 = removals.removeChild(map2);
     removeMap3 = removals.removeChild(map3);
     prerequisiteTask();
+    //Re-sync the module-level serviceUsed with sessionStorage (which hydrateFromUrl just populated).
+    //Without this, A() reads the stale module-init value (null) and takes the wrong branch,
+    //so setter()/getsetGoo() never run and the search bar + path stay empty.
+    serviceUsed = sessionStorage.getItem("serviceUse") || "X";
     map_no = sessionStorage.getItem("map_no");
     if (map_no == null) {
       map_no = "0";

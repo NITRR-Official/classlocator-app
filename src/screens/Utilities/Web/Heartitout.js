@@ -55,22 +55,7 @@ export default function Heartitout(props) {
   const navigation = useNavigation();
   const {stopServer} = useAuth();
 
-  const keyValuePairs = {
-    map_no: props.route.params.map_no,
-  };
-
   const webViewRef = useRef(null);
-  useEffect(() => {
-    if (webViewRef.current && keyValuePairs.map_no != -1) {
-      if (keyValuePairs.map_no == 3) {
-        const data = JSON.stringify(props.route.params.parameters);
-        webViewRef.current.postMessage(data);
-      } else {
-        const data = JSON.stringify(keyValuePairs);
-        webViewRef.current.postMessage(data);
-      }
-    }
-  }, [keyValuePairs]);
 
   let sessionData;
 

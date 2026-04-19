@@ -38,7 +38,7 @@ export const AuthProvider = ({children}) => {
   const [close2, setClose2] = useState(false);
   const [closeAuth, setCloseAuth] = useState(false); 
 
-  const startServer = async link => {
+  const startServer = async (link, query = {}) => {
     await stopServer();
     const path = `${RNFS.CachesDirectoryPath}/engine`;
     try {
@@ -49,7 +49,14 @@ export const AuthProvider = ({children}) => {
       });
       const base = address.replace(/\/$/, '');
       console.log(base);
-      return link == 'main' ? `${base}/index.html` : `${base}/maps.html`;
+      const file = link == 'main' ? 'index.html' : 'maps.html';
+      const entries = Object.entries(query).filter(
+        ([, v]) => v != null && v !== '',
+      );
+      const qs = new URLSearchParams(
+        Object.fromEntries(entries.map(([k, v]) => [k, String(v)])),
+      ).toString();
+      return qs ? `${base}/${file}?${qs}` : `${base}/${file}`;
     } catch (error) {
       console.error('Failed to start server:', error);
       return '';

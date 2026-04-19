@@ -177,7 +177,7 @@ Best regards,
             ]}>
             <TouchableOpacity
               onPress={async () => {
-                startServer('maps').then(res => {
+                startServer('maps', {map_no: 0}).then(res => {
                   trackM('Ground-F')
                   navigation.navigate('maps', {link: res, map_no: 0});
                 });
@@ -194,7 +194,7 @@ Best regards,
               onPress={() => {
                 // navigation.navigate("progress", data);
                 trackM('First-F')
-                startServer('maps').then(res => {
+                startServer('maps', {map_no: 1}).then(res => {
                   navigation.navigate('maps', {link: res, map_no: 1});
                 });
               }}
@@ -210,7 +210,7 @@ Best regards,
               style={[styles.card, {backgroundColor: '#EAF7FC'}]}
               onPress={() => {
                 trackM('Second-F')
-                startServer('maps').then(res => {
+                startServer('maps', {map_no: 2}).then(res => {
                   navigation.navigate('maps', {link: res, map_no: 2});
                 });
               }}>
