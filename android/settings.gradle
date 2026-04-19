@@ -3,5 +3,9 @@ plugins { id("com.facebook.react.settings") }
 extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand() }
 rootProject.name = 'NITRR_Classlocator'
 
+// local-static-server: manual Android project (see root react-native.config.js)
+include ':local-static-server'
+project(':local-static-server').projectDir = new File(rootDir, '../node_modules/local-static-server/android')
+
 include ':app'
 includeBuild('../node_modules/@react-native/gradle-plugin')
