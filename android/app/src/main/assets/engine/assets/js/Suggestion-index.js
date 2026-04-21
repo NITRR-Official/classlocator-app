@@ -1,5 +1,6 @@
 import { searchTool } from "./json/searchTool.js";
 import { createPopup } from "./mainDialogBox.js";
+import { floorForRoom } from "./utils/floor.js";
 let id = [];
 let name = new Map();
 let start,end;
@@ -104,17 +105,12 @@ body[0].onclick = ()=>{
 
 //Build the maps.html URL with the current selection encoded as query params.
 //serviceUse is read from sessionStorage so popup service buttons (Stair/Lift/...) propagate.
-//map_no is derived from the start id using the same ranges as Engine.js's detectfinalFloor.
-const floorForRoom = (id) => {
-  const n = Number.parseInt(id);
-  if (n >= 303) return "3";
-  if (n >= 205 && n <= 302) return "1";
-  if (n >= 115 && n <= 204) return "2";
-  return "0";
-};
-
+//map_no is derived from the start id via the shared floor utility so this
+//module and Engine.js cannot drift out of sync.
 const buildMapsUrl = (startId, endId) => {
-  const map_no = floorForRoom(startId);
+  //Ground fallback preserves the legacy behavior of the previous local
+  //floorForRoom, which returned "0" for unparseable ids.
+  const map_no = floorForRoom(startId) ?? "0";
   const serviceUse = sessionStorage.getItem('serviceUse') || 'X';
   const params = new URLSearchParams({ map_no, serviceUse });
   if (startId != null) params.set('start', String(startId));

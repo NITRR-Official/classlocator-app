@@ -3,6 +3,14 @@ import { createPopup } from "./DialogBox.js";
 import { additionalPaths, map, greenConnections } from "./json/constants.js";
 import { services } from "./json/services.js";
 import { searchTool } from "./json/searchTool.js";
+import {
+  FLOORS,
+  floorForRoom,
+  detectFinalFloor as detectfinalFloor,
+  isOnFloor,
+  floorBounds,
+  isValidRoomId,
+} from "./utils/floor.js";
 
 let starting;
 let ending, map_no;
@@ -57,6 +65,23 @@ const hydrateFromUrl = () => {
         value !== "null"
       ) {
         sessionStorage.setItem(key, value);
+      }
+    }
+
+    //If the URL carries a start, the sharer's current `map_no` is meaningless to
+    //the recipient (they may have been viewing the destination floor when sharing).
+    //Force map_no to the starting floor so the recipient first sees "I am here -> stair"
+    //on their own floor, matching the logic Suggestion-index.js uses when building links.
+    const startFromUrl = params.get("start");
+    if (
+      startFromUrl != null &&
+      startFromUrl !== "" &&
+      startFromUrl !== "undefined" &&
+      startFromUrl !== "null"
+    ) {
+      const derivedMapNo = floorForRoom(startFromUrl);
+      if (derivedMapNo != null) {
+        sessionStorage.setItem("map_no", derivedMapNo);
       }
     }
   } catch (error) {
@@ -379,54 +404,29 @@ final.onkeyup = () => {
   pointsSE(final.id);
 };
 
+//If starts and endd sit on different floors, jump to starts' floor so the user
+//lands on the pickup-side of the new route. (Replaces four hand-rolled
+//per-floor branches that all encoded the same rule.)
+const syncMapNoToStartsFloor = () => {
+  const target = floorForRoom(starts);
+  if (
+    isValidRoomId(endd) &&
+    target != null &&
+    !isOnFloor(endd, target) &&
+    map_no != target
+  ) {
+    sessionStorage.setItem("map_no", target);
+    return true;
+  }
+  return false;
+};
+
 swap.addEventListener("click", () => {
   let temps = (starts = sessionStorage.getItem("end"));
   let tempe = (endd = sessionStorage.getItem("start"));
   sessionStorage.setItem("end", tempe);
   sessionStorage.setItem("start", temps);
-  if (
-    starts >= 303 &&
-    endd < 303 &&
-    endd != null &&
-    endd != undefined &&
-    map_no != "3" &&
-    endd != "null" &&
-    endd != "undefined"
-  ) {
-    sessionStorage.setItem("map_no", "3");
-  } else if (
-    starts >= 205 &&
-    starts <= 302 &&
-    !(endd >= 205 && endd <= 302) &&
-    endd != null &&
-    map_no != "1" &&
-    endd != undefined &&
-    endd != "null" &&
-    endd != "undefined"
-  ) {
-    sessionStorage.setItem("map_no", "1");
-  } else if (
-    starts >= 115 &&
-    starts <= 204 &&
-    !(endd >= 115 && endd <= 204) &&
-    endd != null &&
-    map_no != "2" &&
-    endd != undefined &&
-    endd != "null" &&
-    endd != "undefined"
-  ) {
-    sessionStorage.setItem("map_no", "2");
-  } else if (
-    starts <= 114 &&
-    endd > 114 &&
-    endd != null &&
-    map_no != "0" &&
-    endd != undefined &&
-    endd != "null" &&
-    endd != "undefined"
-  ) {
-    sessionStorage.setItem("map_no", "0");
-  }
+  syncMapNoToStartsFloor();
   reload();
 });
 
@@ -530,20 +530,11 @@ const intersectionGreen = (x, y) => {
 
 //7th change added configured the starl and endl for backyard map
 function removeDestinationAll() {
-  let startl, endl;
-  if (map_no == "1") {
-    startl = 205;
-    endl = 302;
-  } else if (map_no == "2") {
-    startl = 115;
-    endl = 204;
-  } else if (map_no == "0") {
-    startl = 1;
-    endl = 114;
-  } else {
-    startl = 303;
-    endl = 321;
-  }
+  //Fall back to backyard bounds to preserve the original `else` branch
+  //(which covered map_no == "3" and any unknown value).
+  const bounds = floorBounds(map_no) || floorBounds("3");
+  const startl = bounds.first;
+  const endl = bounds.last;
 
   for (let i = startl; i <= endl; i++) {
     if (
@@ -916,36 +907,34 @@ const showPopup = (message) => {
   popup();
 };
 
+//Popup phrasing is customer-facing copy and intentionally doesn't mirror the
+//internal FLOORS label (e.g. "Back" -> "backyard"), so we keep an explicit map.
+const SERVICE_FLOOR_MESSAGES = {
+  "0": "Use quick actions from the ground floor.",
+  "1": "Use quick actions from the first floor.",
+  "2": "Use quick actions from the second floor.",
+  "3": "Use quick actions from the backyard.",
+};
+
 //9th change configuring isServiceApplicable for backyard map
+//
+//The original implementation guarded each popup block on
+//  map_no === "0" || map_no === "1" || map_no === "2" || map_no === "3"
+//(excluding the floor the popup was about). That guard doubled as a "only
+//warn when map_no is a recognized floor" check, so a malformed map_no (e.g.
+//hydrated from a garbage URL) silently passed through. Preserve that.
 const isServiceApplicable = () => {
-  if (map_no === "0" || map_no === "1" || map_no === "3") {
-    if (starts >= 115 && starts <= 204) {
-      showPopup("Use quick actions from the second floor.");
-      return false;
-    }
+  const startsFloor = floorForRoom(starts);
+  const currentMap = String(map_no);
+  const mapNoIsKnown = SERVICE_FLOOR_MESSAGES[currentMap] !== undefined;
+  if (
+    mapNoIsKnown &&
+    startsFloor != null &&
+    startsFloor !== currentMap
+  ) {
+    showPopup(SERVICE_FLOOR_MESSAGES[startsFloor]);
+    return false;
   }
-
-  if (map_no === "0" || map_no === "2" || map_no === "3") {
-    if (starts >= 205 && starts <= 302) {
-      showPopup("Use quick actions from the first floor.");
-      return false;
-    }
-  }
-
-  if (map_no === "0" || map_no === "1" || map_no === "2") {
-    if (starts >= 303) {
-      showPopup("Use quick actions from the backyard.");
-      return false;
-    }
-  }
-
-  if (map_no === "1" || map_no === "2" || map_no === "3") {
-    if (starts <= 114) {
-      showPopup("Use quick actions from the ground floor.");
-      return false;
-    }
-  }
-
   return true;
 };
 
@@ -987,14 +976,6 @@ const nearestDist = (toStairs) => {
   return [felement, key];
 };
 
-//Detecting final floor for all methods
-const detectfinalFloor = (value) => {
-  if (value >= 303) return ["Back", "3"];
-  else if (value >= 205 && value <= 302) return ["First", "1"];
-  else if (value >= 115 && value <= 204) return ["Second", "2"];
-  else return ["Ground", "0"];
-};
-
 const showAlertAndModes = (floor, toDisplay) => {
   alertt.style.display = "block";
   if (toDisplay) {
@@ -1033,22 +1014,21 @@ const getsetGoo = () => {
   };
 
   const detectInterFloorStarts = () => {
-    const floorMappings = [
-      { min: 303, max: Infinity, mapNo: "3", label: "Back" },
-      { min: 205, max: 302, mapNo: "1", label: "First" },
-      { min: 115, max: 204, mapNo: "2", label: "Second" },
-      { min: -Infinity, max: 114, mapNo: "0", label: "Ground" }
-    ];
-  
-    for (const { min, max, mapNo, label } of floorMappings) {
-      if (starts >= min && starts <= max && map_no == mapNo && isValidEnd(endd) && !(endd >= min && endd <= max)) {
+    for (const { detectMin, detectMax, mapNo, label } of FLOORS) {
+      if (
+        starts >= detectMin &&
+        starts <= detectMax &&
+        map_no == mapNo &&
+        isValidEnd(endd) &&
+        !(endd >= detectMin && endd <= detectMax)
+      ) {
         starting = starts;
         ending = startToStairs();
         showAlertAndModes(label, toDisplay);
         return true;
       }
     }
-  
+
     alertt.style.display = "none";
     modes.style.display = "none";
     return false;
@@ -1060,15 +1040,13 @@ const getsetGoo = () => {
   };
 
   const detectInterFloorEnds = () => {
-    const floorMappings = [
-      { min: 205, max: 302, mapNo: "1" },
-      { min: 115, max: 204, mapNo: "2" },
-      { min: -Infinity, max: 114, mapNo: "0" },
-      { min: 303, max: Infinity, mapNo: "3" }
-    ];
-  
-    for (const { min, max, mapNo } of floorMappings) {
-      if (!(starts >= min && starts <= max) && endd >= min && endd <= max && map_no == mapNo) {
+    for (const { detectMin, detectMax, mapNo } of FLOORS) {
+      if (
+        !(starts >= detectMin && starts <= detectMax) &&
+        endd >= detectMin &&
+        endd <= detectMax &&
+        map_no == mapNo
+      ) {
         ending = endd;
         starting = services[sessionStorage.getItem("mode")][map_no][sessionStorage.getItem("Stair")][0];
         return;
@@ -1109,51 +1087,7 @@ const infoo = () => {
 
 //14th change to reconfigure the finalEnd to include the backyard map
 const finalEnd = () => {
-  if (
-    starts >= 303 &&
-    endd < 303 &&
-    endd != null &&
-    endd != undefined &&
-    map_no != "3" &&
-    endd != "null" &&
-    endd != "undefined"
-  ) {
-    sessionStorage.setItem("map_no", "3");
-    reload();
-  } else if (
-    starts >= 205 &&
-    starts <= 302 &&
-    !(endd >= 205 && endd <= 302) &&
-    endd != null &&
-    map_no != "1" &&
-    endd != undefined &&
-    endd != "null" &&
-    endd != "undefined"
-  ) {
-    sessionStorage.setItem("map_no", "1");
-    reload();
-  } else if (
-    starts >= 115 &&
-    starts <= 204 &&
-    !(endd >= 115 && endd <= 204) &&
-    map_no != "2" &&
-    endd != null &&
-    endd != undefined &&
-    endd != "null" &&
-    endd != "undefined"
-  ) {
-    sessionStorage.setItem("map_no", "2");
-    reload();
-  } else if (
-    starts <= 114 &&
-    endd > 114 &&
-    endd != null &&
-    map_no != "0" &&
-    endd != undefined &&
-    endd != "null" &&
-    endd != "undefined"
-  ) {
-    sessionStorage.setItem("map_no", "0");
+  if (syncMapNoToStartsFloor()) {
     reload();
   } else {
     setter();

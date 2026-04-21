@@ -1,0 +1,5 @@
+{
+  "type": "module",
+  "private": true,
+  "description": "Scoped to engine/utils so Node treats *.js as ES modules when running floor.test.js. Has no effect on the Android WebView build, which loads modules explicitly via <script type=\"module\">."
+}
